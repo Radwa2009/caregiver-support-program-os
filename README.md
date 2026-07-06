@@ -2,7 +2,7 @@
 
 A frontend web app prototype that helps nonprofit and public health teams manage caregiver support referrals, track needs, organize workshops and advance care planning conversations, collect feedback, and generate monthly evaluation reports — with responsible AI use built into the workflow.
 
-**Live demo:** deploy with GitHub Pages (instructions below). All data is fictional and de-identified.
+**Live demo:** [deploy with GitHub Pages](https://radwa2009.github.io/caregiver-support-program-os/) (instructions below). All data is fictional and de-identified.
 
 ---
 
