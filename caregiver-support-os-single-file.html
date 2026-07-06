@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Caregiver Support Program OS — Single-file Demo</title>
+<meta name="description" content="A frontend prototype that helps nonprofit and public health teams organize caregiver support referrals, workshops, feedback, and monthly evaluation reporting. Fictional demo data only." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =========================================================
+   Caregiver Support Program OS — styles
+   Palette: warm paper, deep pine green, soft sage,
+   amber for "needs attention," clay for high urgency.
+   Type: Bitter (headings) + Public Sans (body) —
+   Public Sans was designed for U.S. public services.
+   ========================================================= */
+
+:root {
+  --paper: #F7F6F1;
+  --card: #FFFFFF;
+  --ink: #26333B;
+  --muted: #5B6A72;
+  --line: #E3E1D8;
+
+  --pine: #2F5D50;
+  --pine-deep: #24483E;
+  --sage: #E7F0EA;
+  --sage-line: #CBDDD2;
+
+  --amber: #8F5311;
+  --amber-bg: #FBF0DF;
+  --amber-line: #E8CFA6;
+
+  --clay: #9E3E2E;
+  --clay-bg: #FAEAE5;
+  --clay-line: #E7C2B8;
+
+  --blue: #2C5B7A;
+  --blue-bg: #E8F0F5;
+
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(38, 51, 59, 0.06), 0 4px 14px rgba(38, 51, 59, 0.05);
+  --font-display: "Bitter", Georgia, serif;
+  --font-body: "Public Sans", -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.25; margin: 0 0 0.5rem; }
+h1 { font-size: 1.7rem; font-weight: 600; }
+h2 { font-size: 1.25rem; font-weight: 600; }
+h3 { font-size: 1.02rem; font-weight: 600; }
+p { margin: 0 0 0.8rem; }
+a { color: var(--pine); }
+
+button { font-family: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ---------- app shell ---------- */
+
+.app {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background: var(--pine-deep);
+  color: #F2F5F0;
+  padding: 1.2rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.brand { padding: 0 0.5rem; }
+.brand-name { font-family: var(--font-display); font-size: 1.08rem; font-weight: 600; color: #fff; }
+.brand-sub { font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: #A8C4B6; margin-top: 2px; }
+
+.nav { display: flex; flex-direction: column; gap: 2px; }
+
+.nav button {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #D8E4DC;
+  font-size: 0.92rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.nav button:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.nav button.active { background: var(--sage); color: var(--pine-deep); font-weight: 600; }
+.nav .icon { width: 1.1em; text-align: center; }
+
+.sidebar-foot { margin-top: auto; font-size: 0.74rem; color: #9DB6A9; padding: 0 0.5rem; }
+.sidebar-foot button {
+  margin-top: 0.5rem;
+  background: none;
+  border: 1px solid #4E7264;
+  color: #CFE0D6;
+  border-radius: 8px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.sidebar-foot button:hover { background: rgba(255,255,255,0.08); }
+
+.main { padding: 1.6rem clamp(1rem, 3vw, 2.4rem) 3rem; max-width: 1120px; }
+
+.section { display: none; }
+.section.visible { display: block; }
+
+.section-head { margin-bottom: 1.1rem; }
+.section-head .eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--pine);
+  font-weight: 700;
+}
+.section-head p.lede { color: var(--muted); max-width: 62ch; margin-top: 0.2rem; }
+
+/* ---------- cards & layout helpers ---------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.1rem 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.grid { display: grid; gap: 1rem; }
+.grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+@media (max-width: 980px) {
+  .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
+}
+
+/* ---------- dashboard ---------- */
+
+.impact-sentence {
+  background: var(--sage);
+  border: 1px solid var(--sage-line);
+  border-radius: var(--radius);
+  padding: 1.3rem 1.4rem;
+  margin-bottom: 1.1rem;
+}
+.impact-sentence p {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  color: var(--pine-deep);
+  margin: 0;
+  max-width: 46ch;
+}
+.impact-sentence .impact-label {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--pine);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.stat { padding: 0.9rem 1rem; }
+.stat .stat-num { font-family: var(--font-display); font-size: 1.7rem; font-weight: 700; color: var(--pine-deep); }
+.stat .stat-label { font-size: 0.82rem; color: var(--muted); }
+.stat.attention { border-left: 4px solid var(--amber); }
+.stat.attention .stat-num { color: var(--amber); }
+
+.bar-row { display: grid; grid-template-columns: 170px 1fr 2.2rem; align-items: center; gap: 0.6rem; margin-bottom: 0.45rem; font-size: 0.88rem; }
+.bar-track { background: var(--sage); border-radius: 99px; height: 12px; overflow: hidden; }
+.bar-fill { background: var(--pine); height: 100%; border-radius: 99px; }
+.bar-count { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.scope-note {
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-line);
+  border-radius: var(--radius);
+  padding: 0.85rem 1.1rem;
+  font-size: 0.85rem;
+  color: var(--amber);
+  margin-bottom: 1.1rem;
+}
+
+/* ---------- badges & flags ---------- */
+
+.badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding: 0.14rem 0.55rem;
+  border-radius: 99px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.badge.pine { background: var(--sage); color: var(--pine-deep); border-color: var(--sage-line); }
+.badge.amber { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-line); }
+.badge.clay { background: var(--clay-bg); color: var(--clay); border-color: var(--clay-line); }
+.badge.blue { background: var(--blue-bg); color: var(--blue); }
+.badge.gray { background: #EFEEE8; color: var(--muted); }
+
+.review-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-line);
+  color: var(--amber);
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: 99px;
+  padding: 0.15rem 0.6rem;
+}
+
+/* ---------- forms ---------- */
+
+form label, .field label { display: block; font-size: 0.84rem; font-weight: 600; margin-bottom: 0.25rem; }
+.field { margin-bottom: 0.9rem; }
+.hint { font-size: 0.78rem; color: var(--muted); font-weight: 400; }
+
+input[type="text"], input[type="date"], input[type="number"], select, textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.5rem 0.65rem;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+textarea { min-height: 84px; resize: vertical; }
+
+.checks { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 0.3rem 0.9rem; }
+.checks label { display: flex; align-items: center; gap: 0.45rem; font-weight: 400; font-size: 0.9rem; margin: 0; }
+
+.consent-box {
+  background: var(--sage);
+  border: 1px solid var(--sage-line);
+  border-radius: 8px;
+  padding: 0.8rem 0.95rem;
+  font-size: 0.88rem;
+}
+.consent-box label { display: flex; gap: 0.5rem; align-items: flex-start; font-weight: 600; margin: 0 0 0.4rem; }
+.consent-box .privacy { color: var(--pine-deep); font-size: 0.82rem; margin: 0; }
+
+.btn {
+  display: inline-block;
+  background: var(--pine);
+  color: #fff;
+  border: 1px solid var(--pine-deep);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn:hover { background: var(--pine-deep); }
+.btn.secondary { background: #fff; color: var(--pine-deep); border: 1px solid var(--sage-line); }
+.btn.secondary:hover { background: var(--sage); }
+.btn.small { padding: 0.28rem 0.65rem; font-size: 0.8rem; }
+
+.form-msg { font-size: 0.9rem; margin-top: 0.6rem; color: var(--pine-deep); font-weight: 600; }
+.form-msg.error { color: var(--clay); }
+
+/* ---------- tables & lists ---------- */
+
+.filters { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 0.9rem; }
+.filters input, .filters select { width: auto; min-width: 150px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover td { background: var(--sage); }
+
+.table-wrap { overflow-x: auto; }
+
+.empty { color: var(--muted); font-size: 0.9rem; padding: 0.8rem 0; }
+
+/* ---------- profile panel ---------- */
+
+.profile-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 1rem; }
+@media (max-width: 860px) { .profile-grid { grid-template-columns: 1fr; } }
+
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li { border-left: 3px solid var(--sage-line); padding: 0 0 0.8rem 0.9rem; margin-left: 0.3rem; }
+.timeline .t-date { font-size: 0.75rem; color: var(--muted); font-weight: 700; }
+.timeline .t-author { font-size: 0.75rem; color: var(--pine); font-weight: 700; }
+.timeline p { margin: 0.15rem 0 0; font-size: 0.9rem; }
+
+.checklist { list-style: none; margin: 0; padding: 0; font-size: 0.9rem; }
+.checklist li { padding: 0.22rem 0; display: flex; gap: 0.5rem; align-items: baseline; }
+.checklist .dot { color: var(--pine); }
+.checklist.missing .dot { color: var(--amber); }
+
+/* ---------- AI panel ---------- */
+
+.guardrails {
+  background: var(--blue-bg);
+  border: 1px solid #C6D9E4;
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+.guardrails ul { margin: 0.4rem 0 0; padding-left: 1.2rem; }
+.guardrails li { margin-bottom: 0.15rem; }
+
+.prompt-card h3 { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.prompt-card pre {
+  background: #F4F3EC;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.copied { color: var(--pine); font-size: 0.78rem; font-weight: 700; }
+
+/* ---------- report ---------- */
+
+.report {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.6rem;
+  font-size: 0.93rem;
+}
+.report h2 { border-bottom: 2px solid var(--sage-line); padding-bottom: 0.4rem; }
+.report h3 { margin-top: 1.1rem; color: var(--pine-deep); }
+.report ul { padding-left: 1.2rem; margin: 0.3rem 0 0.8rem; }
+
+/* ---------- docs & about ---------- */
+
+.doc-block h3 { color: var(--pine-deep); margin-top: 1rem; }
+.doc-block ul, .doc-block ol { padding-left: 1.25rem; margin: 0.3rem 0 0.9rem; }
+.doc-block li { margin-bottom: 0.25rem; }
+
+.about-hero {
+  background: var(--pine-deep);
+  color: #ECF3EE;
+  border-radius: var(--radius);
+  padding: 1.4rem 1.5rem;
+  margin-bottom: 1rem;
+}
+.about-hero h2 { color: #fff; }
+.about-hero p { color: #C9DCD1; max-width: 62ch; }
+
+/* ---------- mobile shell ---------- */
+
+@media (max-width: 780px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar {
+    position: static;
+    height: auto;
+    flex-direction: column;
+  }
+  .nav { flex-direction: row; flex-wrap: wrap; }
+  .nav button { width: auto; }
+  .sidebar-foot { margin-top: 0.4rem; }
+  .main { padding: 1.1rem 0.9rem 2.5rem; }
+  .bar-row { grid-template-columns: 120px 1fr 2rem; }
+}
+
+@media print {
+  .sidebar, .filters, .btn, .scope-note { display: none !important; }
+  .app { grid-template-columns: 1fr; }
+  body { background: #fff; }
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== sidebar ===================== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-name">Caregiver Support OS</div>
+      <div class="brand-sub">Program workspace · Demo</div>
+    </div>
+    <nav class="nav" aria-label="Main navigation">
+      <button data-section="dashboard" class="active"><span class="icon">▦</span>Dashboard</button>
+      <button data-section="intake"><span class="icon">✎</span>Referral intake</button>
+      <button data-section="caregivers"><span class="icon">☰</span>Caregiver list</button>
+      <button data-section="workshops"><span class="icon">◉</span>Workshops &amp; sessions</button>
+      <button data-section="feedback"><span class="icon">✉</span>Survey &amp; feedback</button>
+      <button data-section="assistant"><span class="icon">✳</span>AI assistant</button>
+      <button data-section="report"><span class="icon">▤</span>Monthly report</button>
+      <button data-section="docs"><span class="icon">✚</span>Documentation</button>
+      <button data-section="about"><span class="icon">☺</span>About this project</button>
+    </nav>
+    <div class="sidebar-foot">
+      Fictional, de-identified demo data.
+      <button id="resetData" type="button">Reset demo data</button>
+    </div>
+  </aside>
+
+  <!-- ===================== main ===================== -->
+  <main class="main">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="dashboard" class="section visible" aria-label="Dashboard">
+      <div class="section-head">
+        <span class="eyebrow">Program overview</span>
+        <h1>Dashboard</h1>
+      </div>
+
+      <div class="scope-note">
+        <strong>Prototype scope:</strong> This is a frontend demo using fictional, de-identified data.
+        A production version would require an approved backend, authentication, role-based access,
+        audit logs, organization-approved privacy policies, staff training, and clinical/legal review
+        where appropriate.
+      </div>
+
+      <div class="impact-sentence">
+        <span class="impact-label">This month, in plain language</span>
+        <p id="impactSentence"></p>
+      </div>
+
+      <div class="grid cols-4" id="statCards"></div>
+
+      <div class="grid cols-2" style="margin-top:1rem;">
+        <div class="card">
+          <h2>Most common caregiver needs</h2>
+          <div id="needsBars"></div>
+        </div>
+        <div class="card">
+          <h2>High-need caregivers · human review</h2>
+          <p class="hint">Cases flagged by urgency or staff notes. This tool never decides — it points a trained person to the file.</p>
+          <div id="reviewList"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Monthly impact snapshot</h2>
+        <div id="snapshot"></div>
+      </div>
+    </section>
+
+    <!-- ============ INTAKE ============ -->
+    <section id="intake" class="section" aria-label="Referral intake">
+      <div class="section-head">
+        <span class="eyebrow">New referral</span>
+        <h1>Referral intake form</h1>
+        <p class="lede">Record a new caregiver referral using de-identified information only. A case ID is suggested automatically; initials are optional.</p>
+      </div>
+
+      <div class="card">
+        <form id="intakeForm" novalidate>
+          <div class="grid cols-3">
+            <div class="field">
+              <label for="f-caseid">Case ID <span class="hint">(auto-suggested)</span></label>
+              <input type="text" id="f-caseid" />
+            </div>
+            <div class="field">
+              <label for="f-initials">Caregiver initials only <span class="hint">(no full names)</span></label>
+              <input type="text" id="f-initials" placeholder="e.g., M.R." maxlength="8" />
+            </div>
+            <div class="field">
+              <label for="f-language">Preferred language</label>
+              <select id="f-language"></select>
+            </div>
+            <div class="field">
+              <label for="f-age">Care recipient age group</label>
+              <select id="f-age"></select>
+            </div>
+            <div class="field">
+              <label for="f-rel">Relationship to care recipient</label>
+              <select id="f-rel"></select>
+            </div>
+            <div class="field">
+              <label for="f-urgency">Urgency level</label>
+              <select id="f-urgency"></select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Support needs <span class="hint">(check all that apply)</span></label>
+            <div class="checks" id="f-needs"></div>
+          </div>
+
+          <div class="field">
+            <label for="f-followup">Follow-up date</label>
+            <input type="date" id="f-followup" style="max-width:220px;" />
+          </div>
+
+          <div class="field">
+            <label for="f-notes">Intake notes <span class="hint">(no diagnoses, no full names, no addresses)</span></label>
+            <textarea id="f-notes" placeholder="Referral source, what the caregiver asked for, preferred contact window…"></textarea>
+          </div>
+
+          <div class="field consent-box">
+            <label><input type="checkbox" id="f-consent" /> The caregiver gave verbal or written consent for this program to record de-identified referral information.</label>
+            <p class="privacy"><strong>Privacy reminder:</strong> enter initials or a case ID only — never full names, addresses, phone numbers, medical record numbers, diagnoses, or other identifying details. This demo stores data in this browser only.</p>
+          </div>
+
+          <button class="btn" type="submit">Save referral</button>
+          <div class="form-msg" id="intakeMsg" role="status"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ CAREGIVER LIST ============ -->
+    <section id="caregivers" class="section" aria-label="Caregiver list">
+      <div class="section-head">
+        <span class="eyebrow">Caseload</span>
+        <h1>Caregiver list</h1>
+        <p class="lede">Search and filter open referrals, then open a profile to see history, missing information, and next steps.</p>
+      </div>
+
+      <div class="card">
+        <div class="filters">
+          <input type="text" id="cg-search" placeholder="Search case ID, initials, notes…" aria-label="Search caregivers" />
+          <select id="cg-status" aria-label="Filter by status"></select>
+          <select id="cg-need" aria-label="Filter by need"></select>
+          <select id="cg-urgency" aria-label="Filter by urgency"></select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Case</th><th>Language</th><th>Needs</th><th>Urgency</th><th>Status</th><th>Follow-up</th><th></th></tr>
+            </thead>
+            <tbody id="cgRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- profile panel -->
+      <div id="profilePanel"></div>
+    </section>
+
+    <!-- ============ WORKSHOPS ============ -->
+    <section id="workshops" class="section" aria-label="Workshops and sessions">
+      <div class="section-head">
+        <span class="eyebrow">Group programming</span>
+        <h1>Workshop &amp; session tracker</h1>
+        <p class="lede">Log workshops, attendance, languages offered, and feedback so the team can see what's working.</p>
+      </div>
+
+      <div class="card">
+        <h2>Add a workshop</h2>
+        <form id="wsForm" novalidate>
+          <div class="grid cols-3">
+            <div class="field"><label for="w-title">Workshop title</label><input type="text" id="w-title" /></div>
+            <div class="field"><label for="w-topic">Topic</label><select id="w-topic"></select></div>
+            <div class="field"><label for="w-date">Date</label><input type="date" id="w-date" /></div>
+            <div class="field"><label for="w-att">Attendance count</label><input type="number" id="w-att" min="0" /></div>
+            <div class="field"><label for="w-lang">Language(s)</label><input type="text" id="w-lang" placeholder="e.g., English / Spanish" /></div>
+            <div class="field"><label for="w-score">Feedback score (1–5)</label><input type="number" id="w-score" min="1" max="5" step="0.1" /></div>
+          </div>
+          <div class="field"><label style="display:flex;align-items:center;gap:0.5rem;font-weight:400;"><input type="checkbox" id="w-follow" /> Follow-up needed</label></div>
+          <div class="field"><label for="w-notes">Notes</label><textarea id="w-notes"></textarea></div>
+          <button class="btn" type="submit">Save workshop</button>
+          <div class="form-msg" id="wsMsg" role="status"></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Workshop log</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Title</th><th>Topic</th><th>Attendance</th><th>Language</th><th>Score</th><th>Follow-up</th></tr></thead>
+            <tbody id="wsRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEEDBACK ============ -->
+    <section id="feedback" class="section" aria-label="Survey and feedback dashboard">
+      <div class="section-head">
+        <span class="eyebrow">Listening to caregivers</span>
+        <h1>Survey &amp; feedback dashboard</h1>
+        <p class="lede">Summaries of demo survey responses. Themes are grouped for review — a staff member always reads the underlying feedback before acting on it.</p>
+      </div>
+      <div class="grid cols-3" id="fbStats"></div>
+      <div class="grid cols-2" style="margin-top:1rem;">
+        <div class="card"><h2>Common themes</h2><div id="fbThemes"></div></div>
+        <div class="card"><h2>Barriers reported</h2><div id="fbBarriers"></div></div>
+        <div class="card"><h2>Top requested resources</h2><div id="fbResources"></div></div>
+        <div class="card"><h2>Caregiver confidence, before → after</h2><div id="fbConfidence"></div></div>
+      </div>
+      <div class="card">
+        <h2>Recent responses</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Workshop</th><th>Score</th><th>Confidence</th><th>Comment</th></tr></thead>
+            <tbody id="fbRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AI ASSISTANT ============ -->
+    <section id="assistant" class="section" aria-label="AI assistant panel">
+      <div class="section-head">
+        <span class="eyebrow">Staff toolkit · demo panel</span>
+        <h1>AI assistant</h1>
+        <p class="lede">Copy-ready prompt templates staff can paste into Claude. This panel is a demo — it does not call an API. Every template carries the same guardrails.</p>
+      </div>
+
+      <div class="guardrails">
+        <strong>Guardrails built into every prompt</strong>
+        <ul>
+          <li>Use de-identified data only (case IDs and initials, never names or contact details).</li>
+          <li>Do not make medical, legal, financial, or eligibility decisions.</li>
+          <li>Do not invent facts; flag uncertainty and missing information clearly.</li>
+          <li>Final decisions stay with trained humans.</li>
+          <li>Verify all translations with a qualified speaker before sending.</li>
+        </ul>
+      </div>
+
+      <div id="promptCards"></div>
+    </section>
+
+    <!-- ============ REPORT ============ -->
+    <section id="report" class="section" aria-label="Monthly evaluation report">
+      <div class="section-head">
+        <span class="eyebrow">For leadership &amp; funders</span>
+        <h1>Monthly evaluation report</h1>
+        <p class="lede">Generates a draft report from the demo data. A coordinator reviews and edits it before it goes to leadership or funders.</p>
+      </div>
+      <div class="card">
+        <button class="btn" id="genReport" type="button">Generate report from current data</button>
+        <button class="btn secondary" id="copyReport" type="button" style="display:none;">Copy report text</button>
+        <button class="btn secondary" id="printReport" type="button" style="display:none;">Print</button>
+        <span class="copied" id="reportCopied"></span>
+      </div>
+      <div id="reportOut"></div>
+    </section>
+
+    <!-- ============ DOCS ============ -->
+    <section id="docs" class="section" aria-label="Documentation and handoff">
+      <div class="section-head">
+        <span class="eyebrow">Sustainability</span>
+        <h1>Documentation &amp; handoff</h1>
+        <p class="lede">Written so the tool can outlive any single staff member. This is the page a new coordinator reads first.</p>
+      </div>
+
+      <div class="card doc-block">
+        <h3>How staff should use this tool</h3>
+        <ol>
+          <li>Log every new referral through the <strong>Referral intake</strong> form the same day it arrives.</li>
+          <li>Check the <strong>Dashboard</strong> each morning for follow-ups due and human-review flags.</li>
+          <li>After each workshop, log it in the <strong>Workshop tracker</strong> and note any follow-up requests.</li>
+          <li>Use the <strong>AI assistant</strong> templates for drafting only — every AI output is reviewed and edited by a trained staff member before it reaches a caregiver.</li>
+          <li>On the first business day of each month, generate the <strong>Monthly report</strong>, review it, and add coordinator commentary before sharing.</li>
+        </ol>
+
+        <h3>What data should not be entered</h3>
+        <ul>
+          <li>No full names, addresses, phone numbers, emails, or dates of birth.</li>
+          <li>No medical record numbers, diagnoses, medications, or clinical details.</li>
+          <li>No financial account details or benefits case numbers.</li>
+          <li>If a note needs identifying detail to be useful, it belongs in the organization's approved system of record — not here.</li>
+        </ul>
+
+        <h3>Privacy and consent guidelines</h3>
+        <ul>
+          <li>Confirm consent before creating a case; the intake form will not save without it.</li>
+          <li>Use case IDs in all AI prompts, reports, and shared documents.</li>
+          <li>Follow the organization's privacy policy and data retention schedule; this demo stores data only in the local browser.</li>
+          <li>When in doubt about what to record, ask the program manager before entering it.</li>
+        </ul>
+
+        <h3>How to train a new staff member (about 1 hour)</h3>
+        <ol>
+          <li>Read this page together (10 min).</li>
+          <li>Walk through one fictional intake end-to-end (15 min).</li>
+          <li>Practice filtering the caregiver list and updating a status (10 min).</li>
+          <li>Review the AI guardrails and try one prompt template with demo data (15 min).</li>
+          <li>Generate a monthly report and discuss what a coordinator would edit (10 min).</li>
+        </ol>
+
+        <h3>How to maintain the workflow</h3>
+        <ul>
+          <li><strong>Weekly:</strong> clear or reschedule overdue follow-ups; review all human-review flags with the program lead.</li>
+          <li><strong>Monthly:</strong> generate the report, archive a copy per policy, and review whether needs categories still match what caregivers ask for.</li>
+          <li><strong>Quarterly:</strong> revisit prompt templates and privacy guidance with staff; retire anything unused.</li>
+        </ul>
+
+        <h3>How to run a 2-week pilot</h3>
+        <ol>
+          <li><strong>Week 0:</strong> pick 2–3 staff testers, agree on the de-identification rules, and reset the demo data.</li>
+          <li><strong>Week 1:</strong> log all new referrals and one workshop in the tool alongside the current process (double entry, on purpose).</li>
+          <li><strong>Week 2:</strong> run a morning check-in from the dashboard daily; draft one follow-up message using an AI template with staff review.</li>
+          <li><strong>Close-out:</strong> 30-minute debrief — what was faster, what was missing, what felt risky — and decide go / no-go on a production build.</li>
+        </ol>
+
+        <h3>Pilot success metrics</h3>
+        <ul>
+          <li>100% of pilot referrals logged with consent documented and no identifying data entered.</li>
+          <li>Follow-ups due are visible each morning without opening a spreadsheet (target: under 2 minutes to answer "who needs follow-up today?").</li>
+          <li>Monthly report drafted in under 30 minutes, versus a multi-hour manual process.</li>
+          <li>Every AI-drafted message shows evidence of human editing before send.</li>
+          <li>Staff confidence using the tool rated 4+ out of 5 at debrief.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section id="about" class="section" aria-label="About this project">
+      <div class="section-head">
+        <span class="eyebrow">Portfolio project</span>
+        <h1>About this project</h1>
+      </div>
+
+      <div class="about-hero">
+        <h2>Built by Radwa Gebreil</h2>
+        <p>Public Health &amp; Nonprofit AI Workflow Builder · MPH, UC Berkeley · BA Communication, UC Davis</p>
+        <p>This prototype is inspired by caregiver support, older adult support, program evaluation, surveys, dashboards, reporting, and a public health practicum focused on program development and evaluation for caregivers, older adults, and individuals needing care coordination.</p>
+      </div>
+
+      <div class="card doc-block">
+        <h3>Why this exists</h3>
+        <p>Caregiver support programs often run on scattered notes, spreadsheets, and emails. This makes it hard to answer three simple questions: who needs follow-up, what do caregivers need most, and is the program working? This prototype puts those answers on one screen.</p>
+
+        <h3>How it was built</h3>
+        <ul>
+          <li>I built this prototype with Claude as a product-thinking and coding partner.</li>
+          <li>I designed the workflow based on public health, caregiver support, and nonprofit program evaluation experience.</li>
+          <li>I would keep medical, legal, financial, eligibility, and service decisions with trained humans — this tool organizes information; people decide.</li>
+        </ul>
+
+        <h3>Designed as a Claude Corps portfolio project</h3>
+        <p>The Claude Corps Fellowship values people who can enter mission-driven organizations, understand messy workflows, build practical AI-assisted tools, train non-technical staff, and leave behind sustainable systems. Each section of this app maps to one of those skills — the intake and dashboard to workflow understanding, the AI panel to safe AI adoption, and the documentation page to training and handoff.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* =========================================================
+   Caregiver Support Program OS — data layer
+   Fictional, de-identified demo data only.
+   Stored in localStorage so the demo persists between visits.
+   To connect Firebase later: replace loadState()/saveState()
+   with Firestore reads/writes; the rest of the app reads from
+   AppState only, so no other file needs to change.
+   ========================================================= */
+
+const STORAGE_KEY = "caregiverOS.v1";
+
+const NEED_OPTIONS = [
+  "Respite care",
+  "Emotional support",
+  "Transportation",
+  "Care coordination",
+  "Advance care planning",
+  "Benefits navigation",
+  "End-of-life education",
+  "Caregiver education",
+  "Community resources",
+  "Other"
+];
+
+const TOPIC_OPTIONS = [
+  "Advance care planning",
+  "Caregiver self-care",
+  "Navigating services",
+  "End-of-life education",
+  "Family communication",
+  "Community resources"
+];
+
+const LANGUAGE_OPTIONS = ["English", "Spanish", "Arabic", "Mandarin", "Vietnamese", "Other"];
+const AGE_GROUPS = ["Under 18", "18–39", "40–59", "60–74", "75–89", "90+"];
+const RELATIONSHIPS = ["Adult child", "Spouse / partner", "Parent", "Sibling", "Grandchild", "Friend / neighbor", "Other family", "Professional caregiver"];
+const URGENCY_LEVELS = ["Low", "Medium", "High"];
+const STATUS_OPTIONS = ["New referral", "Active", "Follow-up due", "On hold", "Closed"];
+
+/* ---------- seed data (fictional) ---------- */
+
+function seedCaregivers() {
+  return [
+    {
+      id: "CG-1001", initials: "M.R.", language: "Spanish", recipientAge: "75–89",
+      relationship: "Adult child", urgency: "High", status: "Follow-up due",
+      needs: ["Respite care", "Advance care planning", "Benefits navigation"],
+      consent: true, followUpDate: "2026-07-08", createdAt: "2026-06-02",
+      notes: [
+        { date: "2026-06-02", author: "Intake volunteer", text: "Referred by community clinic. Caring for father with mobility limits. Prefers phone calls in Spanish, afternoons." },
+        { date: "2026-06-10", author: "Coordinator", text: "Attended Navigating Services workshop. Asked about respite options; sent county respite list." },
+        { date: "2026-06-24", author: "Coordinator", text: "Reports feeling overwhelmed; interested in advance care planning conversation with family. Flagged for human review — coordinate warm handoff, do not advise on benefits eligibility." }
+      ],
+      sessions: ["WS-201", "WS-203"]
+    },
+    {
+      id: "CG-1002", initials: "T.N.", language: "Vietnamese", recipientAge: "60–74",
+      relationship: "Spouse / partner", urgency: "Medium", status: "Active",
+      needs: ["Emotional support", "Caregiver education", "Community resources"],
+      consent: true, followUpDate: "2026-07-15", createdAt: "2026-06-05",
+      notes: [
+        { date: "2026-06-05", author: "Intake volunteer", text: "Self-referred after community fair. Caring for spouse; interested in peer support group." },
+        { date: "2026-06-18", author: "Community health worker", text: "Joined caregiver self-care workshop. Requested materials in Vietnamese." }
+      ],
+      sessions: ["WS-202"]
+    },
+    {
+      id: "CG-1003", initials: "A.K.", language: "English", recipientAge: "90+",
+      relationship: "Grandchild", urgency: "Low", status: "Active",
+      needs: ["Transportation", "Community resources"],
+      consent: true, followUpDate: "2026-07-22", createdAt: "2026-06-09",
+      notes: [
+        { date: "2026-06-09", author: "Coordinator", text: "Needs help getting grandmother to weekly appointments. Shared volunteer driver program info." }
+      ],
+      sessions: []
+    },
+    {
+      id: "CG-1004", initials: "S.H.", language: "Arabic", recipientAge: "75–89",
+      relationship: "Adult child", urgency: "High", status: "Follow-up due",
+      needs: ["End-of-life education", "Emotional support", "Advance care planning"],
+      consent: true, followUpDate: "2026-07-07", createdAt: "2026-06-12",
+      notes: [
+        { date: "2026-06-12", author: "Intake volunteer", text: "Referred by hospice liaison. Family beginning end-of-life conversations; requested Arabic-language materials." },
+        { date: "2026-06-26", author: "Coordinator", text: "High emotional distress reported. Flagged for human review — coordinator to call this week; consider counseling referral through approved partners." }
+      ],
+      sessions: ["WS-203"]
+    },
+    {
+      id: "CG-1005", initials: "J.P.", language: "English", recipientAge: "60–74",
+      relationship: "Sibling", urgency: "Medium", status: "New referral",
+      needs: ["Care coordination", "Benefits navigation"],
+      consent: true, followUpDate: "2026-07-10", createdAt: "2026-06-28",
+      notes: [
+        { date: "2026-06-28", author: "Intake volunteer", text: "New referral from senior center. Coordinating care for brother across two providers. Missing: preferred contact window, needs assessment." }
+      ],
+      sessions: []
+    },
+    {
+      id: "CG-1006", initials: "L.C.", language: "Mandarin", recipientAge: "75–89",
+      relationship: "Adult child", urgency: "Low", status: "Closed",
+      needs: ["Caregiver education", "Community resources"],
+      consent: true, followUpDate: "", createdAt: "2026-05-14",
+      notes: [
+        { date: "2026-05-14", author: "Coordinator", text: "Completed caregiver education series. Connected to neighborhood support circle." },
+        { date: "2026-06-20", author: "Coordinator", text: "Closing case at caregiver's request; door left open to return anytime." }
+      ],
+      sessions: ["WS-201"]
+    },
+    {
+      id: "CG-1007", initials: "D.W.", language: "English", recipientAge: "40–59",
+      relationship: "Parent", urgency: "Medium", status: "Active",
+      needs: ["Respite care", "Emotional support"],
+      consent: true, followUpDate: "2026-07-18", createdAt: "2026-06-15",
+      notes: [
+        { date: "2026-06-15", author: "Community health worker", text: "Caring for adult child with chronic condition. Interested in weekend respite options and peer group." }
+      ],
+      sessions: ["WS-202"]
+    },
+    {
+      id: "CG-1008", initials: "R.B.", language: "Spanish", recipientAge: "75–89",
+      relationship: "Spouse / partner", urgency: "High", status: "Active",
+      needs: ["Advance care planning", "End-of-life education", "Emotional support"],
+      consent: true, followUpDate: "2026-07-09", createdAt: "2026-06-20",
+      notes: [
+        { date: "2026-06-20", author: "Coordinator", text: "Spouse recently entered hospice. Requested Spanish-language advance care planning conversation. Flagged for human review — trained facilitator only; no medical or legal advice." }
+      ],
+      sessions: ["WS-203"]
+    }
+  ];
+}
+
+function seedWorkshops() {
+  return [
+    {
+      id: "WS-201", title: "Navigating Local Services 101", topic: "Navigating services",
+      date: "2026-06-10", attendance: 14, language: "English / Spanish",
+      feedbackScore: 4.4, followUpNeeded: true,
+      notes: "Strong interest in respite and transportation resources. Three attendees asked for one-on-one follow-up."
+    },
+    {
+      id: "WS-202", title: "Caring for Yourself While Caring for Others", topic: "Caregiver self-care",
+      date: "2026-06-17", attendance: 11, language: "English",
+      feedbackScore: 4.7, followUpNeeded: false,
+      notes: "Peer discussion ran long — attendees wanted more time to share. Consider recurring peer circle."
+    },
+    {
+      id: "WS-203", title: "Starting the Conversation: Advance Care Planning", topic: "Advance care planning",
+      date: "2026-06-24", attendance: 9, language: "English / Spanish / Arabic",
+      feedbackScore: 4.2, followUpNeeded: true,
+      notes: "Interpreted session. Several families requested plain-language materials and a follow-up session with a trained facilitator."
+    },
+    {
+      id: "WS-204", title: "Community Resources Fair Prep", topic: "Community resources",
+      date: "2026-05-28", attendance: 18, language: "English",
+      feedbackScore: 4.1, followUpNeeded: false,
+      notes: "Held with senior center partners. Good referral source — five intake forms completed on site."
+    }
+  ];
+}
+
+function seedSurveys() {
+  return [
+    { id: "SV-1", workshopId: "WS-201", score: 5, confidenceBefore: 2, confidenceAfter: 4, themes: ["Knowing where to start", "Respite options"], barriers: ["Cost of services"], resources: ["Respite care list"], comment: "I finally know who to call first." },
+    { id: "SV-2", workshopId: "WS-201", score: 4, confidenceBefore: 3, confidenceAfter: 4, themes: ["Respite options"], barriers: ["Transportation"], resources: ["Volunteer drivers"], comment: "Helpful, but I still need a ride program for my mom." },
+    { id: "SV-3", workshopId: "WS-201", score: 4, confidenceBefore: 2, confidenceAfter: 3, themes: ["Paperwork feels overwhelming"], barriers: ["Language access"], resources: ["Spanish materials"], comment: "Más materiales en español, por favor." },
+    { id: "SV-4", workshopId: "WS-202", score: 5, confidenceBefore: 2, confidenceAfter: 4, themes: ["Permission to rest", "Peer connection"], barriers: ["No backup caregiver"], resources: ["Peer support group"], comment: "Talking to other caregivers helped the most." },
+    { id: "SV-5", workshopId: "WS-202", score: 5, confidenceBefore: 3, confidenceAfter: 5, themes: ["Peer connection"], barriers: ["Time"], resources: ["Recurring peer circle"], comment: "Please make this a monthly group." },
+    { id: "SV-6", workshopId: "WS-202", score: 4, confidenceBefore: 2, confidenceAfter: 4, themes: ["Stress management"], barriers: ["Guilt about self-care"], resources: ["Counseling referrals"], comment: "I learned it's okay to ask for help." },
+    { id: "SV-7", workshopId: "WS-203", score: 4, confidenceBefore: 1, confidenceAfter: 3, themes: ["Starting family conversations"], barriers: ["Family disagreement"], resources: ["Plain-language ACP guide"], comment: "The conversation starters were useful. My siblings and I disagree, so more help there." },
+    { id: "SV-8", workshopId: "WS-203", score: 5, confidenceBefore: 2, confidenceAfter: 4, themes: ["Understanding the documents"], barriers: ["Language access"], resources: ["Arabic materials", "Follow-up session"], comment: "Interpreter made a big difference. We want a follow-up meeting." },
+    { id: "SV-9", workshopId: "WS-203", score: 3, confidenceBefore: 2, confidenceAfter: 3, themes: ["Starting family conversations"], barriers: ["Emotional difficulty"], resources: ["One-on-one support"], comment: "Hard topic. I would prefer a smaller group next time." },
+    { id: "SV-10", workshopId: "WS-204", score: 4, confidenceBefore: 3, confidenceAfter: 4, themes: ["Knowing where to start"], barriers: ["Cost of services"], resources: ["Benefits navigation help"], comment: "Good overview of what exists in the county." }
+  ];
+}
+
+/* ---------- state ---------- */
+
+let AppState = null;
+
+function defaultState() {
+  return {
+    caregivers: seedCaregivers(),
+    workshops: seedWorkshops(),
+    surveys: seedSurveys(),
+    meta: { seededAt: new Date().toISOString(), version: 1 }
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    AppState = raw ? JSON.parse(raw) : defaultState();
+  } catch (e) {
+    AppState = defaultState();
+  }
+  saveState();
+  return AppState;
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(AppState));
+  } catch (e) {
+    /* storage unavailable (private mode) — demo continues in memory */
+  }
+}
+
+function resetDemoData() {
+  AppState = defaultState();
+  saveState();
+}
+
+/* ---------- helpers used across the app ---------- */
+
+function getCaregiver(id) {
+  return AppState.caregivers.find(c => c.id === id);
+}
+
+function nextCaseId() {
+  const nums = AppState.caregivers.map(c => parseInt((c.id || "").replace(/\D/g, ""), 10) || 1000);
+  return "CG-" + (Math.max(1000, ...nums) + 1);
+}
+
+function missingInfoFor(cg) {
+  const missing = [];
+  if (!cg.language) missing.push("Preferred language");
+  if (!cg.recipientAge) missing.push("Care recipient age group");
+  if (!cg.relationship) missing.push("Relationship to care recipient");
+  if (!cg.needs || cg.needs.length === 0) missing.push("Support needs assessment");
+  if (!cg.followUpDate && cg.status !== "Closed") missing.push("Follow-up date");
+  if (!cg.consent) missing.push("Documented consent");
+  const noteText = (cg.notes || []).map(n => n.text).join(" ").toLowerCase();
+  if (!noteText.includes("contact") && !noteText.includes("call") && !noteText.includes("phone")) {
+    missing.push("Preferred contact method / window");
+  }
+  return missing;
+}
+
+function needsHumanReview(cg) {
+  if (cg.urgency === "High") return true;
+  return (cg.notes || []).some(n => /human review|flagged/i.test(n.text));
+}
+
+function countBy(arr, keyFn) {
+  const out = {};
+  arr.forEach(item => {
+    const keys = keyFn(item);
+    (Array.isArray(keys) ? keys : [keys]).forEach(k => {
+      if (!k) return;
+      out[k] = (out[k] || 0) + 1;
+    });
+  });
+  return Object.entries(out).sort((a, b) => b[1] - a[1]);
+}
+
+function avg(nums) {
+  const clean = nums.filter(n => typeof n === "number" && !isNaN(n));
+  if (!clean.length) return 0;
+  return clean.reduce((a, b) => a + b, 0) / clean.length;
+}
+
+/* =========================================================
+   Caregiver Support Program OS — app logic
+   Everything renders from AppState (see data.js).
+   ========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadState();
+  initNav();
+  initIntakeForm();
+  initCaregiverList();
+  initWorkshops();
+  initAssistant();
+  initReport();
+  renderAll();
+
+  document.getElementById("resetData").addEventListener("click", () => {
+    if (confirm("Reset all demo data back to the original fictional examples?")) {
+      resetDemoData();
+      renderAll();
+      showSection("dashboard");
+    }
+  });
+});
+
+function renderAll() {
+  renderDashboard();
+  renderCaregiverTable();
+  renderWorkshopTable();
+  renderFeedback();
+}
+
+/* ---------- utilities ---------- */
+
+function el(html) {
+  const t = document.createElement("template");
+  t.innerHTML = html.trim();
+  return t.content.firstElementChild;
+}
+
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function fmtDate(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso + "T00:00:00");
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function urgencyBadge(u) {
+  const cls = u === "High" ? "clay" : u === "Medium" ? "amber" : "pine";
+  return `<span class="badge ${cls}">${esc(u)}</span>`;
+}
+
+function statusBadge(s) {
+  const cls = s === "Follow-up due" ? "amber" : s === "Closed" ? "gray" : s === "New referral" ? "blue" : "pine";
+  return `<span class="badge ${cls}">${esc(s)}</span>`;
+}
+
+function fillSelect(id, options, includeAll) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = "";
+  if (includeAll) sel.appendChild(el(`<option value="">${includeAll}</option>`));
+  options.forEach(o => sel.appendChild(el(`<option value="${esc(o)}">${esc(o)}</option>`)));
+}
+
+function barChart(container, entries, max) {
+  container.innerHTML = "";
+  if (!entries.length) { container.innerHTML = `<div class="empty">No data yet.</div>`; return; }
+  const top = max || entries[0][1];
+  entries.forEach(([label, count]) => {
+    container.appendChild(el(`
+      <div class="bar-row">
+        <span>${esc(label)}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.max(6, (count / top) * 100)}%"></div></div>
+        <span class="bar-count">${count}</span>
+      </div>`));
+  });
+}
+
+/* ---------- navigation ---------- */
+
+function initNav() {
+  document.querySelectorAll(".nav button").forEach(btn => {
+    btn.addEventListener("click", () => showSection(btn.dataset.section));
+  });
+}
+
+function showSection(id) {
+  document.querySelectorAll(".section").forEach(s => s.classList.toggle("visible", s.id === id));
+  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("active", b.dataset.section === id));
+  window.scrollTo({ top: 0 });
+}
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+function renderDashboard() {
+  const cgs = AppState.caregivers;
+  const open = cgs.filter(c => c.status !== "Closed");
+  const today = new Date().toISOString().slice(0, 10);
+  const followupsDue = open.filter(c => c.followUpDate && c.followUpDate <= today || c.status === "Follow-up due");
+  const review = open.filter(needsHumanReview);
+  const workshops = AppState.workshops;
+  const surveys = AppState.surveys;
+  const avgScore = avg(surveys.map(s => s.score));
+  const topNeeds = countBy(open, c => c.needs);
+
+  // plain-language impact sentence (the dashboard's signature)
+  const topNeed = topNeeds.length ? topNeeds[0][0].toLowerCase() : "support";
+  document.getElementById("impactSentence").textContent =
+    `The program is currently supporting ${open.length} caregivers, ` +
+    `${followupsDue.length} of whom are due for follow-up. ` +
+    `The most requested support is ${topNeed}, and caregivers rate recent workshops ${avgScore.toFixed(1)} out of 5.`;
+
+  // stat cards
+  const stats = [
+    { n: cgs.length, l: "Total caregivers served" },
+    { n: open.length, l: "Open referrals" },
+    { n: followupsDue.length, l: "Follow-ups due", attention: followupsDue.length > 0 },
+    { n: workshops.length, l: "Workshops completed" },
+    { n: surveys.length, l: "Survey responses collected" },
+    { n: review.length, l: "Flagged for human review", attention: review.length > 0 },
+    { n: avgScore.toFixed(1) + " / 5", l: "Average feedback score" },
+    { n: workshops.reduce((a, w) => a + (w.attendance || 0), 0), l: "Total workshop attendance" }
+  ];
+  const cardsBox = document.getElementById("statCards");
+  cardsBox.innerHTML = "";
+  stats.forEach(s => cardsBox.appendChild(el(`
+    <div class="card stat ${s.attention ? "attention" : ""}">
+      <div class="stat-num">${s.n}</div>
+      <div class="stat-label">${esc(s.l)}</div>
+    </div>`)));
+
+  // needs bars
+  barChart(document.getElementById("needsBars"), topNeeds.slice(0, 6));
+
+  // review list
+  const rl = document.getElementById("reviewList");
+  rl.innerHTML = "";
+  if (!review.length) rl.innerHTML = `<div class="empty">No cases flagged right now.</div>`;
+  review.forEach(c => rl.appendChild(el(`
+    <div style="display:flex;justify-content:space-between;gap:0.6rem;align-items:center;padding:0.45rem 0;border-bottom:1px solid var(--line);">
+      <div><strong>${esc(c.id)}</strong> · ${esc(c.initials)} — ${urgencyBadge(c.urgency)} ${statusBadge(c.status)}</div>
+      <button class="btn secondary small" data-open="${esc(c.id)}">Open</button>
+    </div>`)));
+  rl.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => {
+    showSection("caregivers");
+    openProfile(b.dataset.open);
+  }));
+
+  // snapshot
+  const monthName = new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" });
+  document.getElementById("snapshot").innerHTML = `
+    <p><strong>${esc(monthName)}:</strong> ${cgs.length} caregivers served to date, ${open.length} open referrals,
+    ${workshops.length} workshops logged with ${workshops.reduce((a, w) => a + (w.attendance || 0), 0)} total attendees,
+    and ${surveys.length} survey responses averaging ${avgScore.toFixed(1)}/5.
+    ${review.length} case${review.length === 1 ? "" : "s"} flagged for human review.
+    Generate the full narrative in <a href="#" data-goto="report">Monthly report</a>.</p>`;
+  document.querySelector('#snapshot [data-goto]').addEventListener("click", (e) => {
+    e.preventDefault(); showSection("report");
+  });
+}
+
+/* =========================================================
+   INTAKE
+   ========================================================= */
+
+function initIntakeForm() {
+  fillSelect("f-language", LANGUAGE_OPTIONS);
+  fillSelect("f-age", AGE_GROUPS);
+  fillSelect("f-rel", RELATIONSHIPS);
+  fillSelect("f-urgency", URGENCY_LEVELS);
+  const needsBox = document.getElementById("f-needs");
+  NEED_OPTIONS.forEach(n => needsBox.appendChild(el(
+    `<label><input type="checkbox" value="${esc(n)}" /> ${esc(n)}</label>`)));
+  document.getElementById("f-caseid").value = nextCaseId();
+
+  document.getElementById("intakeForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const msg = document.getElementById("intakeMsg");
+    const initials = document.getElementById("f-initials").value.trim();
+    const consent = document.getElementById("f-consent").checked;
+    const needs = [...needsBox.querySelectorAll("input:checked")].map(i => i.value);
+
+    if (!consent) { msg.textContent = "Consent must be documented before saving a referral."; msg.className = "form-msg error"; return; }
+    if (/\d{3,}|@/.test(initials)) { msg.textContent = "Initials only, please — no numbers or contact details."; msg.className = "form-msg error"; return; }
+
+    const cg = {
+      id: document.getElementById("f-caseid").value.trim() || nextCaseId(),
+      initials: initials || "—",
+      language: document.getElementById("f-language").value,
+      recipientAge: document.getElementById("f-age").value,
+      relationship: document.getElementById("f-rel").value,
+      urgency: document.getElementById("f-urgency").value,
+      status: "New referral",
+      needs,
+      consent: true,
+      followUpDate: document.getElementById("f-followup").value,
+      createdAt: new Date().toISOString().slice(0, 10),
+      notes: [],
+      sessions: []
+    };
+    const noteText = document.getElementById("f-notes").value.trim();
+    if (noteText) cg.notes.push({ date: cg.createdAt, author: "Intake", text: noteText });
+
+    AppState.caregivers.unshift(cg);
+    saveState();
+    e.target.reset();
+    document.getElementById("f-caseid").value = nextCaseId();
+    msg.textContent = `Saved ${cg.id}. It now appears in the caregiver list and dashboard.`;
+    msg.className = "form-msg";
+    renderAll();
+  });
+}
+
+/* =========================================================
+   CAREGIVER LIST + PROFILE
+   ========================================================= */
+
+function initCaregiverList() {
+  fillSelect("cg-status", STATUS_OPTIONS, "All statuses");
+  fillSelect("cg-need", NEED_OPTIONS, "All needs");
+  fillSelect("cg-urgency", URGENCY_LEVELS, "All urgency levels");
+  ["cg-search", "cg-status", "cg-need", "cg-urgency"].forEach(id =>
+    document.getElementById(id).addEventListener("input", renderCaregiverTable));
+}
+
+function renderCaregiverTable() {
+  const q = document.getElementById("cg-search").value.toLowerCase();
+  const st = document.getElementById("cg-status").value;
+  const nd = document.getElementById("cg-need").value;
+  const ur = document.getElementById("cg-urgency").value;
+
+  const rows = document.getElementById("cgRows");
+  rows.innerHTML = "";
+  const list = AppState.caregivers.filter(c => {
+    const hay = [c.id, c.initials, c.language, (c.notes || []).map(n => n.text).join(" ")].join(" ").toLowerCase();
+    return (!q || hay.includes(q)) &&
+      (!st || c.status === st) &&
+      (!nd || (c.needs || []).includes(nd)) &&
+      (!ur || c.urgency === ur);
+  });
+
+  if (!list.length) {
+    rows.appendChild(el(`<tr><td colspan="7" class="empty">No caregivers match these filters. Clear a filter or log a new referral.</td></tr>`));
+    return;
+  }
+
+  list.forEach(c => {
+    const tr = el(`
+      <tr class="clickable">
+        <td><strong>${esc(c.id)}</strong><br /><span class="hint">${esc(c.initials)}</span>
+          ${needsHumanReview(c) ? '<br /><span class="review-flag">⚑ Human review</span>' : ""}</td>
+        <td>${esc(c.language)}</td>
+        <td>${(c.needs || []).slice(0, 3).map(n => `<span class="badge pine">${esc(n)}</span>`).join(" ")}${(c.needs || []).length > 3 ? ` <span class="hint">+${c.needs.length - 3}</span>` : ""}</td>
+        <td>${urgencyBadge(c.urgency)}</td>
+        <td>${statusBadge(c.status)}</td>
+        <td>${fmtDate(c.followUpDate)}</td>
+        <td><button class="btn secondary small" type="button">View</button></td>
+      </tr>`);
+    tr.addEventListener("click", () => openProfile(c.id));
+    rows.appendChild(tr);
+  });
+}
+
+function openProfile(id) {
+  const c = getCaregiver(id);
+  if (!c) return;
+  const panel = document.getElementById("profilePanel");
+  const missing = missingInfoFor(c);
+  const sessions = (c.sessions || []).map(sid => AppState.workshops.find(w => w.id === sid)).filter(Boolean);
+
+  const nextSteps = [];
+  if (c.status === "New referral") nextSteps.push("Complete a needs assessment call and set a follow-up date.");
+  if (c.followUpDate) nextSteps.push(`Follow up by ${fmtDate(c.followUpDate)}.`);
+  if ((c.needs || []).includes("Advance care planning")) nextSteps.push("Schedule an advance care planning conversation with a trained facilitator — no medical or legal advice.");
+  if ((c.needs || []).includes("Benefits navigation")) nextSteps.push("Refer to the benefits navigation partner; staff do not determine eligibility.");
+  if (missing.length) nextSteps.push("Fill in the missing information listed below at the next contact.");
+  if (!nextSteps.length) nextSteps.push("No pending actions — confirm at the next monthly review.");
+
+  panel.innerHTML = "";
+  panel.appendChild(el(`
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.6rem;align-items:baseline;">
+      <h2 style="margin:0;">${esc(c.id)} · ${esc(c.initials)}</h2>
+      <div>${urgencyBadge(c.urgency)} ${statusBadge(c.status)} ${needsHumanReview(c) ? '<span class="review-flag">⚑ Human review required before any decision</span>' : ""}</div>
+    </div>
+    <p class="hint" style="margin:0.3rem 0 0.9rem;">
+      ${esc(c.language)} · care recipient ${esc(c.recipientAge)} · ${esc(c.relationship)} · referred ${fmtDate(c.createdAt)}
+    </p>
+
+    <div class="profile-grid">
+      <div>
+        <h3>Notes timeline</h3>
+        <ul class="timeline">
+          ${(c.notes || []).slice().reverse().map(n => `
+            <li><span class="t-date">${fmtDate(n.date)}</span> · <span class="t-author">${esc(n.author)}</span>
+            <p>${esc(n.text)}</p></li>`).join("") || '<li><p class="empty">No notes yet.</p></li>'}
+        </ul>
+        <div class="field">
+          <label for="newNote">Add a note <span class="hint">(de-identified only)</span></label>
+          <textarea id="newNote"></textarea>
+          <button class="btn small" id="addNote" type="button" style="margin-top:0.4rem;">Add note</button>
+        </div>
+      </div>
+      <div>
+        <h3>Needs checklist</h3>
+        <ul class="checklist">
+          ${(c.needs || []).map(n => `<li><span class="dot">●</span>${esc(n)}</li>`).join("") || '<li class="empty">No needs recorded.</li>'}
+        </ul>
+
+        <h3>Missing information</h3>
+        <ul class="checklist missing">
+          ${missing.map(m => `<li><span class="dot">◦</span>${esc(m)}</li>`).join("") || '<li><span class="dot" style="color:var(--pine)">●</span>Nothing missing — record is complete.</li>'}
+        </ul>
+
+        <h3>Session history</h3>
+        <ul class="checklist">
+          ${sessions.map(w => `<li><span class="dot">●</span>${esc(w.title)} <span class="hint">(${fmtDate(w.date)})</span></li>`).join("") || '<li class="empty">No sessions attended yet.</li>'}
+        </ul>
+
+        <h3>Staff next steps</h3>
+        <ul class="checklist">
+          ${nextSteps.map(s => `<li><span class="dot">→</span>${esc(s)}</li>`).join("")}
+        </ul>
+
+        <div class="field" style="margin-top:0.8rem;">
+          <label for="statusUpdate">Update status</label>
+          <select id="statusUpdate">${STATUS_OPTIONS.map(s => `<option ${s === c.status ? "selected" : ""}>${esc(s)}</option>`).join("")}</select>
+        </div>
+        <div class="field">
+          <label for="fuUpdate">Follow-up date</label>
+          <input type="date" id="fuUpdate" value="${esc(c.followUpDate || "")}" />
+        </div>
+        <button class="btn small" id="saveProfile" type="button">Save changes</button>
+        <span class="copied" id="profileMsg"></span>
+      </div>
+    </div>
+  </div>`));
+
+  panel.querySelector("#addNote").addEventListener("click", () => {
+    const t = panel.querySelector("#newNote").value.trim();
+    if (!t) return;
+    c.notes.push({ date: new Date().toISOString().slice(0, 10), author: "Staff", text: t });
+    saveState();
+    openProfile(id);
+    renderAll();
+  });
+
+  panel.querySelector("#saveProfile").addEventListener("click", () => {
+    c.status = panel.querySelector("#statusUpdate").value;
+    c.followUpDate = panel.querySelector("#fuUpdate").value;
+    saveState();
+    renderAll();
+    openProfile(id);
+    panel.querySelector("#profileMsg").textContent = "Saved.";
+  });
+
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* =========================================================
+   WORKSHOPS
+   ========================================================= */
+
+function initWorkshops() {
+  fillSelect("w-topic", TOPIC_OPTIONS);
+  document.getElementById("wsForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const msg = document.getElementById("wsMsg");
+    const title = document.getElementById("w-title").value.trim();
+    if (!title) { msg.textContent = "Please add a workshop title."; msg.className = "form-msg error"; return; }
+    AppState.workshops.unshift({
+      id: "WS-" + (200 + AppState.workshops.length + 1),
+      title,
+      topic: document.getElementById("w-topic").value,
+      date: document.getElementById("w-date").value || new Date().toISOString().slice(0, 10),
+      attendance: parseInt(document.getElementById("w-att").value, 10) || 0,
+      language: document.getElementById("w-lang").value.trim() || "English",
+      feedbackScore: parseFloat(document.getElementById("w-score").value) || null,
+      followUpNeeded: document.getElementById("w-follow").checked,
+      notes: document.getElementById("w-notes").value.trim()
+    });
+    saveState();
+    e.target.reset();
+    msg.textContent = "Workshop saved.";
+    msg.className = "form-msg";
+    renderAll();
+  });
+}
+
+function renderWorkshopTable() {
+  const rows = document.getElementById("wsRows");
+  rows.innerHTML = "";
+  const list = AppState.workshops.slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+  list.forEach(w => rows.appendChild(el(`
+    <tr>
+      <td>${fmtDate(w.date)}</td>
+      <td><strong>${esc(w.title)}</strong>${w.notes ? `<br /><span class="hint">${esc(w.notes)}</span>` : ""}</td>
+      <td><span class="badge pine">${esc(w.topic)}</span></td>
+      <td>${w.attendance}</td>
+      <td>${esc(w.language)}</td>
+      <td>${w.feedbackScore != null ? w.feedbackScore.toFixed(1) : "—"}</td>
+      <td>${w.followUpNeeded ? '<span class="badge amber">Yes</span>' : '<span class="badge gray">No</span>'}</td>
+    </tr>`)));
+}
+
+/* =========================================================
+   FEEDBACK
+   ========================================================= */
+
+function renderFeedback() {
+  const s = AppState.surveys;
+  const before = avg(s.map(x => x.confidenceBefore));
+  const after = avg(s.map(x => x.confidenceAfter));
+
+  const statsBox = document.getElementById("fbStats");
+  statsBox.innerHTML = "";
+  [
+    { n: avg(s.map(x => x.score)).toFixed(1) + " / 5", l: "Average feedback score" },
+    { n: s.length, l: "Responses collected" },
+    { n: `${before.toFixed(1)} → ${after.toFixed(1)}`, l: "Average confidence, before → after (1–5)" }
+  ].forEach(x => statsBox.appendChild(el(`
+    <div class="card stat"><div class="stat-num">${x.n}</div><div class="stat-label">${esc(x.l)}</div></div>`)));
+
+  barChart(document.getElementById("fbThemes"), countBy(s, x => x.themes).slice(0, 6));
+  barChart(document.getElementById("fbBarriers"), countBy(s, x => x.barriers).slice(0, 6));
+  barChart(document.getElementById("fbResources"), countBy(s, x => x.resources).slice(0, 6));
+
+  document.getElementById("fbConfidence").innerHTML = `
+    <div class="bar-row"><span>Before workshops</span><div class="bar-track"><div class="bar-fill" style="width:${(before / 5) * 100}%;background:var(--sage-line);"></div></div><span class="bar-count">${before.toFixed(1)}</span></div>
+    <div class="bar-row"><span>After workshops</span><div class="bar-track"><div class="bar-fill" style="width:${(after / 5) * 100}%;"></div></div><span class="bar-count">${after.toFixed(1)}</span></div>
+    <p class="hint" style="margin-top:0.5rem;">Self-reported confidence managing caregiving tasks, scale of 1–5. Demo data.</p>`;
+
+  const rows = document.getElementById("fbRows");
+  rows.innerHTML = "";
+  s.forEach(x => {
+    const w = AppState.workshops.find(w => w.id === x.workshopId);
+    rows.appendChild(el(`
+      <tr>
+        <td>${esc(w ? w.title : x.workshopId)}</td>
+        <td>${x.score}/5</td>
+        <td>${x.confidenceBefore} → ${x.confidenceAfter}</td>
+        <td>${esc(x.comment)}</td>
+      </tr>`));
+  });
+}
+
+/* =========================================================
+   AI ASSISTANT — demo prompt library (no API calls)
+   ========================================================= */
+
+const GUARDRAIL_BLOCK =
+`Guardrails (follow all of these):
+- Work only with the de-identified information I provide (case IDs and initials, never names or contact details).
+- Do not make or imply medical, legal, financial, or eligibility decisions or recommendations.
+- Do not invent facts. If information is missing or unclear, say so explicitly.
+- Flag anything uncertain, sensitive, or high-risk for human review.
+- Your output is a draft. A trained staff member will review, edit, and approve it before any use.
+- If a translation is involved, note that it must be verified by a qualified speaker before sending.`;
+
+const PROMPTS = [
+  {
+    title: "Summarize caregiver notes",
+    body:
+`You are helping a caregiver support program coordinator organize case notes.
+
+${GUARDRAIL_BLOCK}
+
+Task: Summarize the de-identified case notes below into: (1) a 3–4 sentence situation summary, (2) the caregiver's stated needs in their own framing, (3) open questions for staff. Do not add interpretations that are not supported by the notes.
+
+Case notes:
+[PASTE DE-IDENTIFIED NOTES HERE — case ID and initials only]`
+  },
+  {
+    title: "Identify missing information",
+    body:
+`You are helping a caregiver support program check whether an intake record is complete.
+
+${GUARDRAIL_BLOCK}
+
+Task: Compare the de-identified record below against this standard intake checklist: preferred language, care recipient age group, relationship, support needs, urgency, consent documented, follow-up date, preferred contact window. List what is present, what is missing, and 2–3 respectful questions staff could ask to fill the gaps. Do not guess at missing values.
+
+Record:
+[PASTE DE-IDENTIFIED RECORD HERE]`
+  },
+  {
+    title: "Draft a follow-up message",
+    body:
+`You are helping a caregiver support coordinator draft a warm, plain-language follow-up message.
+
+${GUARDRAIL_BLOCK}
+
+Task: Draft a short follow-up message (under 120 words) that: thanks the caregiver for connecting, reflects the need they raised, offers the specific next step staff listed below, and invites questions. Sixth-grade reading level. Do not promise services, outcomes, or eligibility. Leave a [STAFF NAME] and [PROGRAM PHONE] placeholder.
+
+Context (de-identified):
+- Need raised: [e.g., respite care]
+- Staff-approved next step: [e.g., share county respite list, invite to July workshop]
+- Preferred language: [language — if not English, provide English draft plus a note that translation must be verified]`
+  },
+  {
+    title: "Turn survey feedback into themes",
+    body:
+`You are helping a program evaluator organize open-ended survey feedback.
+
+${GUARDRAIL_BLOCK}
+
+Task: Group the de-identified survey comments below into 3–6 themes. For each theme: a short name, a one-sentence description, an approximate count, and one representative paraphrased comment (do not quote identifying details). Then list anything that appears only once but seems important for staff to read directly. Note the limits of this analysis (small sample, self-selected respondents).
+
+Survey comments:
+[PASTE DE-IDENTIFIED COMMENTS HERE]`
+  },
+  {
+    title: "Generate monthly evaluation narrative",
+    body:
+`You are helping a program coordinator draft the narrative section of a monthly evaluation report for leadership and funders.
+
+${GUARDRAIL_BLOCK}
+
+Task: Using only the numbers and themes below, draft a 3-paragraph narrative: (1) reach and activity this month, (2) what caregivers told us (themes, confidence change, barriers), (3) operational follow-ups and open cases needing human review. Neutral, factual tone. Do not extrapolate impact beyond the data. Mark any place where the coordinator should add context with [COORDINATOR: ...].
+
+Program data:
+[PASTE MONTHLY REPORT NUMBERS HERE — the app's report generator produces this]`
+  },
+  {
+    title: "Create caregiver workshop outline",
+    body:
+`You are helping design a 60-minute community workshop for family caregivers.
+
+${GUARDRAIL_BLOCK}
+
+Task: Draft an outline for a workshop on [TOPIC — e.g., caregiver self-care] for [AUDIENCE — e.g., adult children caring for older parents]. Include: learning goals, a welcome that acknowledges caregiving stress, 3 interactive segments with timing, discussion prompts, a resource-sharing segment, and a closing feedback survey moment. Educational content only — no medical, legal, or financial advice; direct such questions to qualified professionals.`
+  },
+  {
+    title: "Rewrite care-planning language in plain language",
+    body:
+`You are helping staff make advance care planning materials easier to read.
+
+${GUARDRAIL_BLOCK}
+
+Task: Rewrite the passage below at a sixth-grade reading level while keeping the meaning accurate. Do not simplify away legally or medically meaningful distinctions — if a term cannot be simplified safely, keep it and add a one-line plain-language explanation. Flag any sentence where you are unsure the simplified version preserves the original meaning, so staff can verify it with the document owner.
+
+Passage:
+[PASTE PASSAGE HERE]`
+  },
+  {
+    title: "Review AI output for risk",
+    body:
+`You are acting as a second-pass reviewer of an AI-drafted document for a caregiver support program.
+
+${GUARDRAIL_BLOCK}
+
+Task: Review the draft below and flag, line by line where relevant: (1) anything that could be read as medical, legal, financial, or eligibility advice, (2) any claim not supported by the source data, (3) any possibly identifying detail, (4) tone problems for a stressed caregiver audience, (5) anything a trained human must verify before use. End with a clear "safe to send after edits: yes/no/needs discussion" recommendation for the staff reviewer — the final decision is theirs.
+
+Draft to review:
+[PASTE AI DRAFT HERE]`
+  }
+];
+
+function initAssistant() {
+  const box = document.getElementById("promptCards");
+  PROMPTS.forEach((p, i) => {
+    const card = el(`
+      <div class="card prompt-card">
+        <h3>${esc(p.title)}
+          <span><button class="btn secondary small" type="button">Copy prompt</button> <span class="copied"></span></span>
+        </h3>
+        <pre>${esc(p.body)}</pre>
+      </div>`);
+    card.querySelector("button").addEventListener("click", async () => {
+      const note = card.querySelector(".copied");
+      try {
+        await navigator.clipboard.writeText(p.body);
+        note.textContent = "Copied — paste into Claude";
+      } catch {
+        note.textContent = "Select the text below to copy";
+      }
+      setTimeout(() => { note.textContent = ""; }, 2500);
+    });
+    box.appendChild(card);
+  });
+}
+
+/* =========================================================
+   MONTHLY REPORT
+   ========================================================= */
+
+let lastReportText = "";
+
+function initReport() {
+  document.getElementById("genReport").addEventListener("click", renderReport);
+  document.getElementById("copyReport").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(lastReportText);
+      document.getElementById("reportCopied").textContent = "Copied.";
+      setTimeout(() => document.getElementById("reportCopied").textContent = "", 2000);
+    } catch { /* clipboard unavailable */ }
+  });
+  document.getElementById("printReport").addEventListener("click", () => window.print());
+}
+
+function renderReport() {
+  const cgs = AppState.caregivers;
+  const open = cgs.filter(c => c.status !== "Closed");
+  const review = open.filter(needsHumanReview);
+  const today = new Date().toISOString().slice(0, 10);
+  const due = open.filter(c => (c.followUpDate && c.followUpDate <= today) || c.status === "Follow-up due");
+  const ws = AppState.workshops;
+  const sv = AppState.surveys;
+  const attendance = ws.reduce((a, w) => a + (w.attendance || 0), 0);
+  const score = avg(sv.map(s => s.score));
+  const needs = countBy(open, c => c.needs).slice(0, 5);
+  const barriers = countBy(sv, s => s.barriers).slice(0, 5);
+  const before = avg(sv.map(x => x.confidenceBefore));
+  const after = avg(sv.map(x => x.confidenceAfter));
+  const monthName = new Date().toLocaleDateString(undefined, { month: "long", year: "numeric" });
+
+  const improvements = [];
+  if (due.length) improvements.push(`Schedule a weekly follow-up block: ${due.length} caregiver(s) are currently due or overdue for follow-up.`);
+  const langNeeds = countBy(open.filter(c => c.language !== "English"), c => c.language);
+  if (langNeeds.length) improvements.push(`Expand language access: open cases include ${langNeeds.map(([l, n]) => `${l} (${n})`).join(", ")}; verify translated materials are available for these languages.`);
+  if (barriers.length) improvements.push(`Address the top reported barrier — "${barriers[0][0]}" — in next month's workshop planning or partner referrals.`);
+  if (ws.some(w => w.followUpNeeded)) improvements.push(`Close the loop on workshops marked "follow-up needed" before scheduling new sessions on the same topics.`);
+  improvements.push("Review all human-review flags with the program lead; decisions and any service, benefits, or care determinations remain with trained staff and qualified partners.");
+
+  const html = `
+  <div class="report" id="reportBody">
+    <h2>Monthly Program Evaluation Report — ${esc(monthName)}</h2>
+    <p class="hint">Draft generated from program data for coordinator review. Fictional demo data. All figures should be verified and narrative context added by a trained staff member before sharing.</p>
+
+    <h3>Reach &amp; activity</h3>
+    <ul>
+      <li>Caregivers served to date: <strong>${cgs.length}</strong> (open referrals: ${open.length}; new this month: ${cgs.filter(c => c.createdAt && c.createdAt.slice(0, 7) === today.slice(0, 7)).length})</li>
+      <li>Referrals received (all time in demo): <strong>${cgs.length}</strong></li>
+      <li>Workshops completed: <strong>${ws.length}</strong>, total attendance <strong>${attendance}</strong></li>
+    </ul>
+
+    <h3>What caregivers told us</h3>
+    <ul>
+      <li>Average workshop feedback score: <strong>${score.toFixed(1)} / 5</strong> (${sv.length} responses)</li>
+      <li>Self-reported confidence: <strong>${before.toFixed(1)} → ${after.toFixed(1)}</strong> (1–5 scale, before → after)</li>
+      <li>Top needs: ${needs.map(([n, c]) => `${esc(n)} (${c})`).join(" · ")}</li>
+      <li>Barriers reported: ${barriers.map(([b, c]) => `${esc(b)} (${c})`).join(" · ")}</li>
+    </ul>
+
+    <h3>Follow-up &amp; open cases</h3>
+    <ul>
+      <li>Follow-ups due or overdue: <strong>${due.length}</strong> (${due.map(c => esc(c.id)).join(", ") || "none"})</li>
+      <li>Cases flagged for human review: <strong>${review.length}</strong> (${review.map(c => esc(c.id)).join(", ") || "none"})</li>
+    </ul>
+
+    <h3>Suggested operational improvements (for discussion)</h3>
+    <ul>${improvements.map(i => `<li>${esc(i)}</li>`).join("")}</ul>
+
+    <h3>Notes &amp; limitations</h3>
+    <p>This report organizes program records and self-reported survey data; it does not measure clinical outcomes and does not make eligibility, medical, legal, or financial determinations. Small sample sizes mean percentages should be interpreted cautiously.</p>
+  </div>`;
+
+  document.getElementById("reportOut").innerHTML = html;
+  lastReportText = document.getElementById("reportBody").innerText;
+  document.getElementById("copyReport").style.display = "inline-block";
+  document.getElementById("printReport").style.display = "inline-block";
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Caregiver Support Program OS — Demo</title>
+<meta name="description" content="A frontend prototype that helps nonprofit and public health teams organize caregiver support referrals, workshops, feedback, and monthly evaluation reporting. Fictional demo data only." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== sidebar ===================== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-name">Caregiver Support OS</div>
+      <div class="brand-sub">Program workspace · Demo</div>
+    </div>
+    <nav class="nav" aria-label="Main navigation">
+      <button data-section="dashboard" class="active"><span class="icon">▦</span>Dashboard</button>
+      <button data-section="intake"><span class="icon">✎</span>Referral intake</button>
+      <button data-section="caregivers"><span class="icon">☰</span>Caregiver list</button>
+      <button data-section="workshops"><span class="icon">◉</span>Workshops &amp; sessions</button>
+      <button data-section="feedback"><span class="icon">✉</span>Survey &amp; feedback</button>
+      <button data-section="assistant"><span class="icon">✳</span>AI assistant</button>
+      <button data-section="report"><span class="icon">▤</span>Monthly report</button>
+      <button data-section="docs"><span class="icon">✚</span>Documentation</button>
+      <button data-section="about"><span class="icon">☺</span>About this project</button>
+    </nav>
+    <div class="sidebar-foot">
+      Fictional, de-identified demo data.
+      <button id="resetData" type="button">Reset demo data</button>
+    </div>
+  </aside>
+
+  <!-- ===================== main ===================== -->
+  <main class="main">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section id="dashboard" class="section visible" aria-label="Dashboard">
+      <div class="section-head">
+        <span class="eyebrow">Program overview</span>
+        <h1>Dashboard</h1>
+      </div>
+
+      <div class="scope-note">
+        <strong>Prototype scope:</strong> This is a frontend demo using fictional, de-identified data.
+        A production version would require an approved backend, authentication, role-based access,
+        audit logs, organization-approved privacy policies, staff training, and clinical/legal review
+        where appropriate.
+      </div>
+
+      <div class="impact-sentence">
+        <span class="impact-label">This month, in plain language</span>
+        <p id="impactSentence"></p>
+      </div>
+
+      <div class="grid cols-4" id="statCards"></div>
+
+      <div class="grid cols-2" style="margin-top:1rem;">
+        <div class="card">
+          <h2>Most common caregiver needs</h2>
+          <div id="needsBars"></div>
+        </div>
+        <div class="card">
+          <h2>High-need caregivers · human review</h2>
+          <p class="hint">Cases flagged by urgency or staff notes. This tool never decides — it points a trained person to the file.</p>
+          <div id="reviewList"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Monthly impact snapshot</h2>
+        <div id="snapshot"></div>
+      </div>
+    </section>
+
+    <!-- ============ INTAKE ============ -->
+    <section id="intake" class="section" aria-label="Referral intake">
+      <div class="section-head">
+        <span class="eyebrow">New referral</span>
+        <h1>Referral intake form</h1>
+        <p class="lede">Record a new caregiver referral using de-identified information only. A case ID is suggested automatically; initials are optional.</p>
+      </div>
+
+      <div class="card">
+        <form id="intakeForm" novalidate>
+          <div class="grid cols-3">
+            <div class="field">
+              <label for="f-caseid">Case ID <span class="hint">(auto-suggested)</span></label>
+              <input type="text" id="f-caseid" />
+            </div>
+            <div class="field">
+              <label for="f-initials">Caregiver initials only <span class="hint">(no full names)</span></label>
+              <input type="text" id="f-initials" placeholder="e.g., M.R." maxlength="8" />
+            </div>
+            <div class="field">
+              <label for="f-language">Preferred language</label>
+              <select id="f-language"></select>
+            </div>
+            <div class="field">
+              <label for="f-age">Care recipient age group</label>
+              <select id="f-age"></select>
+            </div>
+            <div class="field">
+              <label for="f-rel">Relationship to care recipient</label>
+              <select id="f-rel"></select>
+            </div>
+            <div class="field">
+              <label for="f-urgency">Urgency level</label>
+              <select id="f-urgency"></select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Support needs <span class="hint">(check all that apply)</span></label>
+            <div class="checks" id="f-needs"></div>
+          </div>
+
+          <div class="field">
+            <label for="f-followup">Follow-up date</label>
+            <input type="date" id="f-followup" style="max-width:220px;" />
+          </div>
+
+          <div class="field">
+            <label for="f-notes">Intake notes <span class="hint">(no diagnoses, no full names, no addresses)</span></label>
+            <textarea id="f-notes" placeholder="Referral source, what the caregiver asked for, preferred contact window…"></textarea>
+          </div>
+
+          <div class="field consent-box">
+            <label><input type="checkbox" id="f-consent" /> The caregiver gave verbal or written consent for this program to record de-identified referral information.</label>
+            <p class="privacy"><strong>Privacy reminder:</strong> enter initials or a case ID only — never full names, addresses, phone numbers, medical record numbers, diagnoses, or other identifying details. This demo stores data in this browser only.</p>
+          </div>
+
+          <button class="btn" type="submit">Save referral</button>
+          <div class="form-msg" id="intakeMsg" role="status"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ CAREGIVER LIST ============ -->
+    <section id="caregivers" class="section" aria-label="Caregiver list">
+      <div class="section-head">
+        <span class="eyebrow">Caseload</span>
+        <h1>Caregiver list</h1>
+        <p class="lede">Search and filter open referrals, then open a profile to see history, missing information, and next steps.</p>
+      </div>
+
+      <div class="card">
+        <div class="filters">
+          <input type="text" id="cg-search" placeholder="Search case ID, initials, notes…" aria-label="Search caregivers" />
+          <select id="cg-status" aria-label="Filter by status"></select>
+          <select id="cg-need" aria-label="Filter by need"></select>
+          <select id="cg-urgency" aria-label="Filter by urgency"></select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Case</th><th>Language</th><th>Needs</th><th>Urgency</th><th>Status</th><th>Follow-up</th><th></th></tr>
+            </thead>
+            <tbody id="cgRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- profile panel -->
+      <div id="profilePanel"></div>
+    </section>
+
+    <!-- ============ WORKSHOPS ============ -->
+    <section id="workshops" class="section" aria-label="Workshops and sessions">
+      <div class="section-head">
+        <span class="eyebrow">Group programming</span>
+        <h1>Workshop &amp; session tracker</h1>
+        <p class="lede">Log workshops, attendance, languages offered, and feedback so the team can see what's working.</p>
+      </div>
+
+      <div class="card">
+        <h2>Add a workshop</h2>
+        <form id="wsForm" novalidate>
+          <div class="grid cols-3">
+            <div class="field"><label for="w-title">Workshop title</label><input type="text" id="w-title" /></div>
+            <div class="field"><label for="w-topic">Topic</label><select id="w-topic"></select></div>
+            <div class="field"><label for="w-date">Date</label><input type="date" id="w-date" /></div>
+            <div class="field"><label for="w-att">Attendance count</label><input type="number" id="w-att" min="0" /></div>
+            <div class="field"><label for="w-lang">Language(s)</label><input type="text" id="w-lang" placeholder="e.g., English / Spanish" /></div>
+            <div class="field"><label for="w-score">Feedback score (1–5)</label><input type="number" id="w-score" min="1" max="5" step="0.1" /></div>
+          </div>
+          <div class="field"><label style="display:flex;align-items:center;gap:0.5rem;font-weight:400;"><input type="checkbox" id="w-follow" /> Follow-up needed</label></div>
+          <div class="field"><label for="w-notes">Notes</label><textarea id="w-notes"></textarea></div>
+          <button class="btn" type="submit">Save workshop</button>
+          <div class="form-msg" id="wsMsg" role="status"></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Workshop log</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Title</th><th>Topic</th><th>Attendance</th><th>Language</th><th>Score</th><th>Follow-up</th></tr></thead>
+            <tbody id="wsRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FEEDBACK ============ -->
+    <section id="feedback" class="section" aria-label="Survey and feedback dashboard">
+      <div class="section-head">
+        <span class="eyebrow">Listening to caregivers</span>
+        <h1>Survey &amp; feedback dashboard</h1>
+        <p class="lede">Summaries of demo survey responses. Themes are grouped for review — a staff member always reads the underlying feedback before acting on it.</p>
+      </div>
+      <div class="grid cols-3" id="fbStats"></div>
+      <div class="grid cols-2" style="margin-top:1rem;">
+        <div class="card"><h2>Common themes</h2><div id="fbThemes"></div></div>
+        <div class="card"><h2>Barriers reported</h2><div id="fbBarriers"></div></div>
+        <div class="card"><h2>Top requested resources</h2><div id="fbResources"></div></div>
+        <div class="card"><h2>Caregiver confidence, before → after</h2><div id="fbConfidence"></div></div>
+      </div>
+      <div class="card">
+        <h2>Recent responses</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Workshop</th><th>Score</th><th>Confidence</th><th>Comment</th></tr></thead>
+            <tbody id="fbRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AI ASSISTANT ============ -->
+    <section id="assistant" class="section" aria-label="AI assistant panel">
+      <div class="section-head">
+        <span class="eyebrow">Staff toolkit · demo panel</span>
+        <h1>AI assistant</h1>
+        <p class="lede">Copy-ready prompt templates staff can paste into Claude. This panel is a demo — it does not call an API. Every template carries the same guardrails.</p>
+      </div>
+
+      <div class="guardrails">
+        <strong>Guardrails built into every prompt</strong>
+        <ul>
+          <li>Use de-identified data only (case IDs and initials, never names or contact details).</li>
+          <li>Do not make medical, legal, financial, or eligibility decisions.</li>
+          <li>Do not invent facts; flag uncertainty and missing information clearly.</li>
+          <li>Final decisions stay with trained humans.</li>
+          <li>Verify all translations with a qualified speaker before sending.</li>
+        </ul>
+      </div>
+
+      <div id="promptCards"></div>
+    </section>
+
+    <!-- ============ REPORT ============ -->
+    <section id="report" class="section" aria-label="Monthly evaluation report">
+      <div class="section-head">
+        <span class="eyebrow">For leadership &amp; funders</span>
+        <h1>Monthly evaluation report</h1>
+        <p class="lede">Generates a draft report from the demo data. A coordinator reviews and edits it before it goes to leadership or funders.</p>
+      </div>
+      <div class="card">
+        <button class="btn" id="genReport" type="button">Generate report from current data</button>
+        <button class="btn secondary" id="copyReport" type="button" style="display:none;">Copy report text</button>
+        <button class="btn secondary" id="printReport" type="button" style="display:none;">Print</button>
+        <span class="copied" id="reportCopied"></span>
+      </div>
+      <div id="reportOut"></div>
+    </section>
+
+    <!-- ============ DOCS ============ -->
+    <section id="docs" class="section" aria-label="Documentation and handoff">
+      <div class="section-head">
+        <span class="eyebrow">Sustainability</span>
+        <h1>Documentation &amp; handoff</h1>
+        <p class="lede">Written so the tool can outlive any single staff member. This is the page a new coordinator reads first.</p>
+      </div>
+
+      <div class="card doc-block">
+        <h3>How staff should use this tool</h3>
+        <ol>
+          <li>Log every new referral through the <strong>Referral intake</strong> form the same day it arrives.</li>
+          <li>Check the <strong>Dashboard</strong> each morning for follow-ups due and human-review flags.</li>
+          <li>After each workshop, log it in the <strong>Workshop tracker</strong> and note any follow-up requests.</li>
+          <li>Use the <strong>AI assistant</strong> templates for drafting only — every AI output is reviewed and edited by a trained staff member before it reaches a caregiver.</li>
+          <li>On the first business day of each month, generate the <strong>Monthly report</strong>, review it, and add coordinator commentary before sharing.</li>
+        </ol>
+
+        <h3>What data should not be entered</h3>
+        <ul>
+          <li>No full names, addresses, phone numbers, emails, or dates of birth.</li>
+          <li>No medical record numbers, diagnoses, medications, or clinical details.</li>
+          <li>No financial account details or benefits case numbers.</li>
+          <li>If a note needs identifying detail to be useful, it belongs in the organization's approved system of record — not here.</li>
+        </ul>
+
+        <h3>Privacy and consent guidelines</h3>
+        <ul>
+          <li>Confirm consent before creating a case; the intake form will not save without it.</li>
+          <li>Use case IDs in all AI prompts, reports, and shared documents.</li>
+          <li>Follow the organization's privacy policy and data retention schedule; this demo stores data only in the local browser.</li>
+          <li>When in doubt about what to record, ask the program manager before entering it.</li>
+        </ul>
+
+        <h3>How to train a new staff member (about 1 hour)</h3>
+        <ol>
+          <li>Read this page together (10 min).</li>
+          <li>Walk through one fictional intake end-to-end (15 min).</li>
+          <li>Practice filtering the caregiver list and updating a status (10 min).</li>
+          <li>Review the AI guardrails and try one prompt template with demo data (15 min).</li>
+          <li>Generate a monthly report and discuss what a coordinator would edit (10 min).</li>
+        </ol>
+
+        <h3>How to maintain the workflow</h3>
+        <ul>
+          <li><strong>Weekly:</strong> clear or reschedule overdue follow-ups; review all human-review flags with the program lead.</li>
+          <li><strong>Monthly:</strong> generate the report, archive a copy per policy, and review whether needs categories still match what caregivers ask for.</li>
+          <li><strong>Quarterly:</strong> revisit prompt templates and privacy guidance with staff; retire anything unused.</li>
+        </ul>
+
+        <h3>How to run a 2-week pilot</h3>
+        <ol>
+          <li><strong>Week 0:</strong> pick 2–3 staff testers, agree on the de-identification rules, and reset the demo data.</li>
+          <li><strong>Week 1:</strong> log all new referrals and one workshop in the tool alongside the current process (double entry, on purpose).</li>
+          <li><strong>Week 2:</strong> run a morning check-in from the dashboard daily; draft one follow-up message using an AI template with staff review.</li>
+          <li><strong>Close-out:</strong> 30-minute debrief — what was faster, what was missing, what felt risky — and decide go / no-go on a production build.</li>
+        </ol>
+
+        <h3>Pilot success metrics</h3>
+        <ul>
+          <li>100% of pilot referrals logged with consent documented and no identifying data entered.</li>
+          <li>Follow-ups due are visible each morning without opening a spreadsheet (target: under 2 minutes to answer "who needs follow-up today?").</li>
+          <li>Monthly report drafted in under 30 minutes, versus a multi-hour manual process.</li>
+          <li>Every AI-drafted message shows evidence of human editing before send.</li>
+          <li>Staff confidence using the tool rated 4+ out of 5 at debrief.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ ABOUT ============ -->
+    <section id="about" class="section" aria-label="About this project">
+      <div class="section-head">
+        <span class="eyebrow">Portfolio project</span>
+        <h1>About this project</h1>
+      </div>
+
+      <div class="about-hero">
+        <h2>Built by Radwa Gebreil</h2>
+        <p>Public Health &amp; Nonprofit AI Workflow Builder · MPH, UC Berkeley · BA Communication, UC Davis</p>
+        <p>This prototype is inspired by caregiver support, older adult support, program evaluation, surveys, dashboards, reporting, and a public health practicum focused on program development and evaluation for caregivers, older adults, and individuals needing care coordination.</p>
+      </div>
+
+      <div class="card doc-block">
+        <h3>Why this exists</h3>
+        <p>Caregiver support programs often run on scattered notes, spreadsheets, and emails. This makes it hard to answer three simple questions: who needs follow-up, what do caregivers need most, and is the program working? This prototype puts those answers on one screen.</p>
+
+        <h3>How it was built</h3>
+        <ul>
+          <li>I built this prototype with Claude as a product-thinking and coding partner.</li>
+          <li>I designed the workflow based on public health, caregiver support, and nonprofit program evaluation experience.</li>
+          <li>I would keep medical, legal, financial, eligibility, and service decisions with trained humans — this tool organizes information; people decide.</li>
+        </ul>
+
+        <h3>Designed as a Claude Corps portfolio project</h3>
+        <p>The Claude Corps Fellowship values people who can enter mission-driven organizations, understand messy workflows, build practical AI-assisted tools, train non-technical staff, and leave behind sustainable systems. Each section of this app maps to one of those skills — the intake and dashboard to workflow understanding, the AI panel to safe AI adoption, and the documentation page to training and handoff.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
